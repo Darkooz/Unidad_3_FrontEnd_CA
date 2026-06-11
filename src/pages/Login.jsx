@@ -1,13 +1,14 @@
 // src/pages/Login.jsx
 import { useState } from "react";
-import { loginUser } from "../services/authService";
+// 1. Agregamos "saveSession" en la importación para poder usarlo de la guía
+import { loginUser, saveSession } from "../services/authService"; 
 import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [error, setError] = useState("");
-const [success, setSuccess] = useState(false); // Estado para el cartel verde
+const [success, setSuccess] = useState(false);
 const navigate = useNavigate();
 
 const handleSubmit = async (e) => {
@@ -22,12 +23,18 @@ const handleSubmit = async (e) => {
         password: password 
     });
 
-      // Si el backend responde con token, asumimos éxito rotundo (código 200)
+      // Si el backend responde con token o éxito rotundo
     if (result && (result.token || result.ok === true)) {
-        localStorage.setItem("token", result.token || result.data?.token);
         
-        setError("");       // <-- OBLIGATORIO: Limpiamos el error para que se borre el cartel rojo
-        setSuccess(true);   // <-- Activamos el verde de pana
+        // 2. Extraemos el token y el usuario según responda tu backend
+        const tokenVal = result.token || result.data?.token;
+        const userVal = result.user || result.data?.user;
+
+        // 3. Usamos la función oficial para guardar AMBAS cosas en el LocalStorage
+        saveSession(tokenVal, userVal);
+        
+        setError("");       
+        setSuccess(true);   
         
         setTimeout(() => {
         navigate("/user/dashboard"); 
@@ -47,7 +54,6 @@ return (
     <div className="card p-4 shadow" style={{ width: "400px" }}>
         <h2 className="text-center mb-4">Login SportClub</h2>
         
-        {/* Carteles dinámicos de Bootstrap */}
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {success && <div className="alert alert-success" role="alert">¡Login exitoso! Redirigiendo...</div>}
 

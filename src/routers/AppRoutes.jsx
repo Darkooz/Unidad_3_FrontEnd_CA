@@ -1,29 +1,77 @@
-// src/routers/AppRoutes.jsx
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import Unauthorized from "../pages/Unauthorized";
+import ProtectedRoute from "./ProtectedRoute";
+import RoleRoute from "./RoleRoute";
 
-// Dejamos una vista de inicio simple con Bootstrap tradicional para navegar
-function Home() {
-  return (
-    <div className="container text-center mt-5">
-      <h1>Bienvenido a SportClub</h1>
-      <p className="lead">Sistema SPA desarrollado con React y Bootstrap tradicional.</p>
-      <div className="mt-4">
-        <Link to="/login" className="btn btn-primary me-2">Ir al Login</Link>
-        <Link to="/register" className="btn btn-success">Ir al Registro</Link>
-      </div>
+// Componentes temporales para el desierto blanco del Dashboard (mientras los creas en la otra semana)
+const UserDashboard = () => (
+  <div className="container mt-5">
+    <div className="card p-5 text-center shadow">
+      <h3>🏋️‍♂️ ¡Panel de Alumno Activo! (SportClub)</h3>
+      <p className="text-muted mt-2">Bienvenido Carlos. Aquí verás tus rutinas y asistencias pronto.</p>
     </div>
-  );
-}
+  </div>
+);
+
+const CoachDashboard = () => (
+  <div className="container mt-5">
+    <div className="card p-5 text-center shadow-sm">
+      <h3>📋 Panel del Entrenador</h3>
+      <p className="text-muted">Gestión de alumnos asignados y rutinas.</p>
+    </div>
+  </div>
+);
+
+const AdminDashboard = () => (
+  <div className="container mt-5">
+    <div className="card p-5 text-center shadow-sm">
+      <h3>⚙️ Panel de Administración Global</h3>
+      <p className="text-muted">Control total de usuarios, roles y sedes del club.</p>
+    </div>
+  </div>
+);
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Enrutamiento Público */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* 🔒 Rutas Protegidas y Filtradas por Rol Estricto de INACAP */}
+        <Route 
+          path="/user/dashboard" 
+          element={
+            <RoleRoute allowedRoles={["user", "User", "alumno"]}>
+              <UserDashboard />
+            </RoleRoute>
+          } 
+        />
+
+        <Route 
+          path="/coach/dashboard" 
+          element={
+            <RoleRoute allowedRoles={["coach"]}>
+              <CoachDashboard />
+            </RoleRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </RoleRoute>
+          } 
+        />
+
+        {/* Si escriben cualquier ruta loca o inexistente, los patea al login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
