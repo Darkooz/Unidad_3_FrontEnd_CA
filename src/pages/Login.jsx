@@ -1,89 +1,121 @@
 // src/pages/Login.jsx
 import { useState } from "react";
-// 1. Agregamos "saveSession" en la importación para poder usarlo de la guía
-import { loginUser, saveSession } from "../services/authService"; 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Alert, Button, Card, Container, Form, Spinner } from "react-bootstrap"; // Componentes oficiales
+import { loginUser, saveSession } from "../services/authService"; // Importaciones corregidas
+// Importamos el logo oficial desde los assets
+import logoSportClub from "../assets/logo_empresa_letra_v1.png";
 
 function Login() {
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-const [error, setError] = useState("");
-const [success, setSuccess] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate(); //
+  const [email, setEmail] = useState(""); //
+  const [password, setPassword] = useState(""); //
+  const [error, setError] = useState(""); //
+  const [loading, setLoading] = useState(false); // Estado para el spinner
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess(false);
+const handleSubmit = async (event) => {
+    event.preventDefault(); //
+    setError(""); //
+    setLoading(true); //
 
     try {
-    const result = await loginUser({ 
-        email: email, 
-        username: email, 
-        password: password 
-    });
+      const data = await loginUser({ email, password }); //
+      saveSession(data.data.token, data.data.user); // Guardado simultáneo oficial
 
-      // Si el backend responde con token o éxito rotundo
-    if (result && (result.token || result.ok === true)) {
-        
-        // 2. Extraemos el token y el usuario según responda tu backend
-        const tokenVal = result.token || result.data?.token;
-        const userVal = result.user || result.data?.user;
-
-        // 3. Usamos la función oficial para guardar AMBAS cosas en el LocalStorage
-        saveSession(tokenVal, userVal);
-        
-        setError("");       
-        setSuccess(true);   
-        
-        setTimeout(() => {
-        navigate("/user/dashboard"); 
-        }, 1500);
+      // Redirección inteligente según el rol que responda el backend
+    if (data.data.user.role === "admin") {
+        navigate("/admin/dashboard"); //
+    } else if (data.data.user.role === "coach") {
+        navigate("/coach/dashboard"); //
     } else {
-        setSuccess(false);
-        setError(result?.message || "Credenciales incorrectas.");
+        navigate("/user/dashboard"); //
     }
-    } catch (err) {
-    setSuccess(false);
-    setError("Error al conectar con el servidor.");
+    } catch (error) {
+      setError(error.message || "Error al conectar con el servidor."); //
+    } finally {
+      setLoading(false); //
     }
 };
 
+// Cambia esto en la parte final de tu src/pages/Login.jsx
 return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-    <div className="card p-4 shadow" style={{ width: "400px" }}>
-        <h2 className="text-center mb-4">Login SportClub</h2>
+    <div 
+    className="d-flex justify-content-center align-items-center min-vh-100 m-0 p-0" 
+    style={{ 
+        // Degradado oficial con los tonos de tu logo de SportClub
+        background: "linear-gradient(135deg, #1b0933 0%, #0d041a 100%)",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        overflowY: "auto"
+    }}
+    >
+    <Card style={{ width: "24rem" }} className="shadow-lg border-0 bg-white rounded-4 my-auto">
+        <Card.Body className="p-4">
         
-        {error && <div className="alert alert-danger" role="alert">{error}</div>}
-        {success && <div className="alert alert-success" role="alert">¡Login exitoso! Redirigiendo...</div>}
+          {/* Contenedor del Logo de la Empresa */}
+        <div className="text-center mb-4">
+            <img 
+            src="/logo_empresa_letra_v1.png" 
+            alt="SportClub Logo" 
+            className="img-fluid px-2"
+            style={{ maxHeight: "80px", objectFit: "contain" }}
+            />
+            <div 
+            className="mt-2 text-muted px-3" 
+            style={{ borderTop: "2px solid #ffcc00", height: "2px" }}
+            />
+        </div>
 
-        <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-            <label className="form-label">Correo Electrónico</label>
-            <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+        {error && <Alert variant="danger" className="text-center p-2 small">{error}</Alert>}
+
+        <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold text-secondary">Correo Electrónico</Form.Label>
+            <Form.Control
+                type="email"
+                placeholder="ejemplo@sportclub.cl"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="p-2 border-2"
             />
-        </div>
-        <div className="mb-3">
-            <label className="form-label">Contraseña</label>
-            <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+            <Form.Label className="fw-semibold text-secondary">Contraseña</Form.Label>
+            <Form.Control
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="p-2 border-2"
             />
-        </div>
-        <button type="submit" className="btn btn-primary w-100">Ingresar</button>
-        </form>
-        <p className="mt-3 text-center small">
-        ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
-        </p>
-    </div>
+            </Form.Group>
+
+            <Button 
+            type="submit" 
+            variant="dark" 
+            className="w-100 p-2 fw-bold text-uppercase shadow-sm" 
+            disabled={loading}
+            style={{ backgroundColor: "#250c46", borderColor: "#250c46" }}
+            >
+            {loading ? (
+                <>
+                <Spinner size="sm" animation="border" className="me-2" />
+                Ingresando...
+                </>
+            ) : (
+                "Ingresar"
+            )}
+            </Button>
+        </Form>
+
+        </Card.Body>
+    </Card>
     </div>
 );
 }
