@@ -3,40 +3,49 @@ import { Button, Container, Nav, Navbar } from "react-bootstrap";
 import { logout, getUser } from "../services/authService";
 
 function AdminLayout() {
-const navigate = useNavigate();
-const user = getUser();
+  const navigate = useNavigate();
+  const user = getUser();
 
-const handleLogout = () => {
+  const handleLogout = () => {
     logout();
     navigate("/login");
-};
+  };
 
-return (
+  return (
     <>
-    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm">
+      <Navbar bg="danger" variant="dark" expand="lg" className="shadow-sm">
         <Container>
-        <Navbar.Brand>⚙️ SportClub Admin</Navbar.Brand>
-        <Navbar.Toggle aria-controls="admin-navbar" />
-        <Navbar.Collapse id="admin-navbar">
+          <Navbar.Brand as={Link} to="/admin/dashboard" className="d-flex align-items-center">
+  <img
+    src="/logo_empresa_letra_v1.png"
+    alt="Logo SportClub"
+    height="45" 
+    className="d-inline-block align-top"
+  />
+</Navbar.Brand>
+          <Navbar.Toggle aria-controls="admin-navbar" />
+          <Navbar.Collapse id="admin-navbar">
             <Nav className="me-auto">
-            <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
+              <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
+              <Link className="nav-link" to="/admin/users">Usuarios</Link> 
             </Nav>
             <Nav className="align-items-center">
-            <span className="text-white me-3 small">
-                Admin: {user?.name || user?.email?.split("@")[0]}
-            </span>
-            <Button variant="outline-light" size="sm" onClick={handleLogout}>
+              <span className="text-white me-3 small">
+                Admin: {user?.full_name || user?.email?.split("@")[0]}
+              </span>
+              <Link className="nav-link text-white me-3 fw-semibold" to="/admin/perfil">Mi Perfil</Link>
+              <Button variant="light" size="sm" onClick={handleLogout} className="text-danger fw-bold">
                 Cerrar Sesión
-            </Button>
+              </Button>
             </Nav>
-        </Navbar.Collapse>
+          </Navbar.Collapse>
         </Container>
-    </Navbar>
-    <Container className="mt-4">
+      </Navbar>
+      <Container className="mt-4">
         <Outlet />
-    </Container>
+      </Container>
     </>
-);
+  );
 }
 
 export default AdminLayout;
