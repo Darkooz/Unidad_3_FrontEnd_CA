@@ -10,7 +10,8 @@ import UserLayout from "../layouts/UserLayout";
 import CoachLayout from "../layouts/CoachLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import RoleRoute from "./RoleRoute";
-import ProtectedRoute from "./ProtectedRoute"; // <-- 1. Importa tu ruta protegida general
+import ProtectedRoute from "./ProtectedRoute";
+import SportsPage from "../pages/admin/SportsPage";
 
 function AppRoutes() {
   return (
@@ -38,6 +39,7 @@ function AppRoutes() {
         <Route path="/admin" element={<RoleRoute allowedRoles={["admin", "Admin", "administrador"]}><AdminLayout /></RoleRoute>}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="sports" element={<SportsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
