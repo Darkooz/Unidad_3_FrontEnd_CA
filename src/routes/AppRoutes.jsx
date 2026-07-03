@@ -5,6 +5,7 @@ import UserDashboard from "../pages/user/UserDashboard";
 import CoachDashboard from "../pages/coach/CoachDashboard";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import UsersPage from "../pages/admin/UsersPage";
+import RoomsPage from "../pages/admin/RoomsPage";
 import Profile from "../pages/Profile";
 import UserLayout from "../layouts/UserLayout";
 import CoachLayout from "../layouts/CoachLayout";
@@ -12,13 +13,16 @@ import AdminLayout from "../layouts/AdminLayout";
 import RoleRoute from "./RoleRoute";
 import ProtectedRoute from "./ProtectedRoute";
 import SportsPage from "../pages/admin/SportsPage";
-
+import SportRoomsPage from "../pages/admin/SportRoomsPage";
+import Register from "../pages/Register";
+import ClassSchedulesPage from "../pages/admin/ClassSchedulesPage";
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* 2. Agrega la ruta de Profile protegida para cualquier usuario logueado */}
@@ -40,6 +44,9 @@ function AppRoutes() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="sports" element={<SportsPage />} />
+          <Route path="rooms" element={<RoomsPage />} />
+          <Route path="sport-rooms" element={<SportRoomsPage />} />
+          <Route path="schedules" element={<ClassSchedulesPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

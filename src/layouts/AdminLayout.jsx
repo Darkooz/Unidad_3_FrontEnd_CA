@@ -27,8 +27,11 @@ function AdminLayout() {
           <Navbar.Collapse id="admin-navbar">
             <Nav className="me-auto">
               <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
-              <Link className="nav-link" to="/admin/users">Usuarios</Link> 
+              <Link className="nav-link" to="/admin/users">Usuarios</Link>
               <Link className="nav-link" to="/admin/sports">Deportes</Link>
+              <Link className="nav-link" to="/admin/rooms">Salas</Link>
+              <Link className="nav-link" to="/admin/sport-rooms">Asignaciones</Link>
+              <Link className="nav-link" to="/admin/schedules">Horarios</Link>
             </Nav>
             <Nav className="align-items-center">
               <span className="text-white me-3 small">
