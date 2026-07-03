@@ -1,44 +1,34 @@
-const API_URL = "http://localhost:3000/api/sports";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-// Función auxiliar que busca tu "credencial VIP" (Token) en el navegador
-// y arma las cabeceras de seguridad que exige el backend.
 const getAuthHeaders = () => {
-  const token = localStorage.getItem("token"); 
+  const token = localStorage.getItem("token");
   return {
     "Content-Type": "application/json",
     "Authorization": token ? `Bearer ${token}` : ""
   };
 };
 
-// 1. Listar todos los deportes
+// Obtener todos los deportes
 export async function getSports() {
-  const response = await fetch(API_URL, {
-    headers: getAuthHeaders() // Agregamos la credencial
-  });
-  return response.json();
-}
-
-// 2. Obtener un deporte por ID
-export async function getSportById(id) {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/sports`, {
     headers: getAuthHeaders()
   });
   return response.json();
 }
 
-// 3. Crear un deporte
+// Crear un deporte
 export async function createSport(data) {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/sports`, {
     method: "POST",
-    headers: getAuthHeaders(), // Agregamos la credencial al POST
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
   return response.json();
 }
 
-// 4. Actualizar un deporte
+// Actualizar un deporte
 export async function updateSport(id, data) {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/sports/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -46,21 +36,29 @@ export async function updateSport(id, data) {
   return response.json();
 }
 
-// 5. Eliminar un deporte
+// Eliminar un deporte
 export async function deleteSport(id) {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/sports/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders() // Fundamental para poder borrar
+    headers: getAuthHeaders()
   });
   return response.json();
 }
+// Cambiar el estado de un deporte (Activar/Desactivar)
+export async function toggleSportStatus(id, statusData) {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  const token = localStorage.getItem("token");
 
-// 6. Cambiar estado de un deporte
-export async function toggleSportStatus(id, status) {
-  const response = await fetch(`${API_URL}/${id}/status`, {
-    method: "PATCH",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ status }),
+  const response = await fetch(`${API_URL}/sports/${id}`, {
+    // Usamos PUT o PATCH dependiendo de cómo actualice el backend
+    method: "PUT", 
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${token}` : ""
+    },
+    // Enviamos el nuevo estado (ej: { is_active: false })
+    body: JSON.stringify(statusData), 
   });
+  
   return response.json();
 }

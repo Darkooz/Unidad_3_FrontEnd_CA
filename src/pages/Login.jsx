@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Button, Card, Container, Form, Spinner } from "react-bootstrap"; // Componentes oficiales
-import { loginUser, saveSession } from "../services/authService"; // Importaciones corregidas
+import { loginUser, saveSession } from "../services/authService";
+import Swal from "sweetalert2"; // Importaciones corregidas
 // Importamos el logo oficial desde los assets
 import logoSportClub from "../assets/logo_empresa_letra_v1.png";
-
 function Login() {
   const navigate = useNavigate(); //
   const [email, setEmail] = useState(""); //
@@ -13,29 +13,40 @@ function Login() {
   const [error, setError] = useState(""); //
   const [loading, setLoading] = useState(false); // Estado para el spinner
 
-const handleSubmit = async (event) => {
-    event.preventDefault(); //
-    setError(""); //
-    setLoading(true); //
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true); // Encendemos el spinner
 
     try {
-      const data = await loginUser({ email, password }); //
-      saveSession(data.data.token, data.data.user); // Guardado simultáneo oficial
+      const result = await loginUser({ email, password }); 
 
-      // Redirección inteligente según el rol que responda el backend
-    if (data.data.user.role === "admin") {
-        navigate("/admin/dashboard"); //
-    } else if (data.data.user.role === "coach") {
-        navigate("/coach/dashboard"); //
-    } else {
-        navigate("/user/dashboard"); //
-    }
+      // Buscamos el token y el user ya sea sueltos o adentro de "data"
+      const token = result.token || result.data?.token;
+      const user = result.user || result.data?.user;
+
+      if (token && user) {
+        // Guardamos las credenciales en el navegador
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        // Redirigimos a la pantalla correcta
+        if (user.role === "admin" || user.role === "Admin") {
+          navigate("/admin/dashboard");
+        } else if (user.role === "coach" || user.role === "Coach") {
+          navigate("/coach/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
+      } else {
+        // Si no hay token, ahora sí mostramos el error
+        Swal.fire("Acceso Denegado", result.message || "Credenciales incorrectas", "error");
+      }
     } catch (error) {
-      setError(error.message || "Error al conectar con el servidor."); //
+      Swal.fire("Error", "Problemas de conexión con el servidor.", "error");
     } finally {
-      setLoading(false); //
+      setLoading(false); // Apagamos el spinner al terminar
     }
-};
+  };
 
 // Cambia esto en la parte final de tu src/pages/Login.jsx
 return (
