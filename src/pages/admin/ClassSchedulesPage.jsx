@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Container, Card, Table, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { getClassSchedules, deleteClassSchedule } from "../../services/classScheduleService";
+import { getSportRooms } from "../../services/sportRoomService";
+import { getSports } from "../../services/sportService";
+import { getRooms } from "../../services/roomService";
+import { getUsers } from "../../services/userService";
 import ClassScheduleModal from "./ClassScheduleModal";
 
 function ClassSchedulesPage() {
@@ -19,11 +23,39 @@ function ClassSchedulesPage() {
     setShowModal(false);
   };
 
+  // 2. SUPER FUNCIÓN PARA CARGAR Y CRUZAR TODOS LOS DATOS
   const loadSchedules = async () => {
     try {
-      const res = await getClassSchedules();
-      setSchedules(res.data || res || []);
-    } catch (error) {
+      const [schedulesRes, sportRoomsRes, sportsRes, roomsRes, usersRes] = await Promise.all([
+        getClassSchedules(),
+        getSportRooms(),
+        getSports(),
+        getRooms(),
+        getUsers()
+      ]);
+
+      const allSchedules = schedulesRes.data || schedulesRes || [];
+      const allSportRooms = sportRoomsRes.data || sportRoomsRes || [];
+      const allSports = sportsRes.data || sportsRes || [];
+      const allRooms = roomsRes.data || roomsRes || [];
+      const allUsers = usersRes.data || usersRes || [];
+
+      // Mapeamos para inyectar los nombres reales
+      const mappedSchedules = allSchedules.map(sch => {
+        const sr = allSportRooms.find(r => r.id === sch.sport_room_id);
+        const sport = allSports.find(s => s.id === sr?.sport_id);
+        const room = allRooms.find(r => r.id === sr?.room_id);
+        const coach = allUsers.find(u => u.id === sr?.coach_id);
+
+        return {
+          ...sch,
+          sportName: sport?.name || "Deporte no asignado",
+          roomName: room?.name || "Sala no asignada",
+          coachName: coach ? `${coach.first_name || ""} ${coach.last_name || ""}`.trim() || coach.full_name || "Sin nombre" : "Coach no asignado"
+        };
+      });
+      setSchedules(mappedSchedules);
+    }    catch (error) {
       console.error("Error al cargar horarios:", error);
       Swal.fire("Error", "No se pudieron cargar los horarios", "error");
     }
@@ -56,15 +88,16 @@ function ClassSchedulesPage() {
     });
   };
 
+  // 3. CORREGIDA PARA QUE RECIBA NÚMEROS (1, 2, 3...) EN VEZ DE TEXTO EN INGLÉS
   const translateDay = (day) => {
     const days = {
-      Monday: "Lunes",
-      Tuesday: "Martes",
-      Wednesday: "Miércoles",
-      Thursday: "Jueves",
-      Friday: "Viernes",
-      Saturday: "Sábado",
-      Sunday: "Domingo"
+      1: "Lunes",
+      2: "Martes",
+      3: "Miércoles",
+      4: "Jueves",
+      5: "Viernes",
+      6: "Sábado",
+      7: "Domingo"
     };
     return days[day] || day;
   };
@@ -95,9 +128,10 @@ function ClassSchedulesPage() {
               {schedules.length > 0 ? (
                 schedules.map((item) => (
                   <tr key={item.id}>
-                    <td className="fw-semibold text-capitalize">{item.sport_room?.sport?.name || "Deporte"}</td>
-                    <td>{item.sport_room?.room?.name || "Sala"}</td>
-                    <td>{item.sport_room?.coach?.full_name || item.sport_room?.user?.full_name || "Coach"}</td>
+                    {/* 4. ACTUALIZAMOS LOS NOMBRES DE LAS COLUMNAS A LAS VARIABLES MAPEADAS */}
+                    <td className="fw-semibold text-capitalize">{item.sportName}</td>
+                    <td>{item.roomName}</td>
+                    <td>{item.coachName}</td>
                     <td>{translateDay(item.day_of_week)}</td>
                     <td className="fw-bold text-primary">{item.start_time} - {item.end_time}</td>
                     <td>

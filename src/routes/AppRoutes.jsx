@@ -11,11 +11,13 @@ import UserLayout from "../layouts/UserLayout";
 import CoachLayout from "../layouts/CoachLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import RoleRoute from "./RoleRoute";
-import ProtectedRoute from "./ProtectedRoute";
 import SportsPage from "../pages/admin/SportsPage";
 import SportRoomsPage from "../pages/admin/SportRoomsPage";
 import Register from "../pages/Register";
 import ClassSchedulesPage from "../pages/admin/ClassSchedulesPage";
+import StudentPortal from "../pages/member/StudentPortal";
+import ProtectedRoute from "../components/ProtectedRoute";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -35,6 +37,7 @@ function AppRoutes() {
         <Route path="/user" element={<RoleRoute allowedRoles={["user", "User", "alumno"]}><UserLayout /></RoleRoute>}>
           <Route path="dashboard" element={<UserDashboard />} />
         </Route>
+        <Route path="/portal" element={<StudentPortal />} />
 
         <Route path="/coach" element={<RoleRoute allowedRoles={["coach", "Coach", "entrenador"]}><CoachLayout /></RoleRoute>}>
           <Route path="dashboard" element={<CoachDashboard />} />

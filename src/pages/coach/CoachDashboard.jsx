@@ -1,37 +1,52 @@
 import { Container, Card, Table, Badge, Row, Col, Spinner } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { getClassSchedules } from "../../services/classScheduleService";
-import Swal from "sweetalert2";
-import { getSports } from "../../services/sportService"; 
-import { getRooms } from "../../services/roomService";
-import { getSportRooms } from "../../services/sportRoomService";
+
 function CoachDashboard() {
   const [myClasses, setMyClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-const loadMyClasses = async () => {
+  const loadMyClasses = async () => {
     try {
       const res = await getClassSchedules();
-      const allSchedules = res.data || res || [];
-      
-      const userData = localStorage.getItem("user"); 
-      const currentUser = userData ? JSON.parse(userData) : null;
-      const myId = currentUser?.id;
 
-      console.log("Mi ID actual:", myId);
-      console.log("Todos los horarios recibidos:", allSchedules);
+      console.log("Respuesta API:", res);
 
-      // Inspección: Imprimamos los coach_id que vienen en las clases
-      allSchedules.forEach((s, index) => {
-        console.log(`Clase ${index}: coach_id detectado es`, s.sport_room?.coach_id);
+      const allSchedules = Array.isArray(res.data) ? res.data : [];
+
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const myId = Number(currentUser.id);
+
+      console.log("Mi ID:", myId);
+
+      const filtered = allSchedules.filter((item) => {
+        // Soporta sportRoom y sport_room
+        const sportRoom = item.sportRoom || item.sport_room;
+
+        console.log("Horario:", item);
+        console.log("SportRoom:", sportRoom);
+        console.log("Coach:", sportRoom?.coach);
+
+        const coachId =
+          sportRoom?.coach?.id ??
+          sportRoom?.coach_id;
+
+        console.log({
+  miId: myId,
+  coachId: coachId,
+  coach: sportRoom?.coach,
+  sportRoom
+});
+
+        return Number(coachId) === myId;
       });
-console.log("¿El ID 4 es igual al ID 3?", Number(4) === Number(3)); // Esto debería dar false
-const filteredClasses = allSchedules.filter(
-  (item) => String(item.sportRoom?.coach_id) === String(myId)
-);
-      setMyClasses(filteredClasses);
+
+      console.log("Clases encontradas:", filtered);
+
+      setMyClasses(filtered);
+
     } catch (error) {
-      console.error("Error cargando clases:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -42,19 +57,35 @@ const filteredClasses = allSchedules.filter(
   }, []);
 
   const translateDay = (day) => {
-    const days = {
-      Monday: "Lunes", Tuesday: "Martes", Wednesday: "Miércoles",
-      Thursday: "Jueves", Friday: "Viernes", Saturday: "Sábado", Sunday: "Domingo"
-    };
-    return days[day] || day;
+  const days = {
+    1: "Lunes",
+    2: "Martes",
+    3: "Miércoles",
+    4: "Jueves",
+    5: "Viernes",
+    6: "Sábado",
+    7: "Domingo",
+
+    Monday: "Lunes",
+    Tuesday: "Martes",
+    Wednesday: "Miércoles",
+    Thursday: "Jueves",
+    Friday: "Viernes",
+    Saturday: "Sábado",
+    Sunday: "Domingo",
   };
+
+  return days[day] || day;
+};
 
   return (
     <Container className="mt-4">
       <Row className="mb-4">
         <Col>
           <h2 className="fw-bold text-dark">Mi Panel de Entrenador</h2>
-          <p className="text-muted">Revisa tus próximas clases y horarios asignados.</p>
+          <p className="text-muted">
+            Revisa tus próximas clases y horarios asignados.
+          </p>
         </Col>
       </Row>
 
@@ -62,11 +93,11 @@ const filteredClasses = allSchedules.filter(
         <Card.Header className="bg-dark text-white py-3">
           <h5 className="mb-0 fw-semibold">Mis Clases Asignadas</h5>
         </Card.Header>
+
         <Card.Body className="p-0">
           {loading ? (
             <div className="text-center py-5">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Cargando tus clases...</p>
+              <Spinner animation="border" />
             </div>
           ) : (
             <Table responsive striped hover className="mb-0 text-center align-middle">
@@ -79,33 +110,41 @@ const filteredClasses = allSchedules.filter(
                   <th>Estado</th>
                 </tr>
               </thead>
+
               <tbody>
                 {myClasses.length > 0 ? (
-                  myClasses.map((item) => (
-                    <tr key={item.id}>
-                      <td className="fw-bold text-primary text-capitalize">
-                        {item.sport_room?.sport?.name || "Deporte"}
-                      </td>
-                      <td>{item.sport_room?.room?.name || "Sala"}</td>
-                      <td>{translateDay(item.day_of_week)}</td>
-                      <td className="fw-semibold">
-                        {item.start_time} - {item.end_time}
-                      </td>
-                      <td>
-                        <Badge bg={item.sport_room?.status ? "success" : "secondary"}>
-                          {item.sport_room?.status ? "Activa" : "Inactiva"}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))
+                  myClasses.map((item) => {
+                    const sportRoom = item.sportRoom || item.sport_room;
+
+                    return (
+                      <tr key={item.id}>
+                        <td>{sportRoom?.sport?.name}</td>
+
+                        <td>{sportRoom?.room?.name}</td>
+
+                        <td>{translateDay(item.day_of_week)}</td>
+
+                        <td>
+                          {item.start_time} - {item.end_time}
+                        </td>
+
+                        <td>
+                          <Badge bg={sportRoom?.status ? "success" : "secondary"}>
+                            {sportRoom?.status ? "Activa" : "Inactiva"}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="5" className="py-4 text-muted">
-                      No tienes clases asignadas por el momento. ¡Día libre!
+                    <td colSpan="5">
+                      No tienes clases asignadas.
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </Table>
           )}
         </Card.Body>
